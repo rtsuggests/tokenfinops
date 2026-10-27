@@ -68,6 +68,14 @@ const faqSchema =
         })),
       }
     : null;
+
+// Google AdSense verification
+const adClient = import.meta.env.PUBLIC_ADSENSE_CLIENT;
+const hasValidAdSense =
+  Boolean(adClient) &&
+  typeof adClient === 'string' &&
+  adClient.startsWith('ca-pub-') &&
+  !adClient.includes('XXXXXXXXXXXXXXXX');
 ---
 
 <!-- Global Metadata -->
@@ -106,4 +114,13 @@ const faqSchema =
 <!-- JSON-LD Structured Data: FAQPage -->
 {faqSchema && (
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+)}
+
+<!-- Google AdSense (active only after approval with valid client ID) -->
+{hasValidAdSense && (
+  <script
+    async
+    src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adClient}`}
+    crossorigin="anonymous"
+  />
 )}
