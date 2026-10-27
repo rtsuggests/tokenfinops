@@ -1,0 +1,255 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FinOpsCalculator from '../components/FinOpsCalculator';
+import AdSlot from '../components/AdSlot.astro';
+import modelsData from '../data/models.json';
+import workloadsData from '../data/workloads.json';
+import type { LLMModel, WorkloadPreset } from '../types';
+
+const models = modelsData as LLMModel[];
+const workloads = workloadsData as WorkloadPreset[];
+
+const faqs = [
+  {
+    question: 'How does multi-turn conversational compounding affect API costs?',
+    answer:
+      'In multi-turn chat applications, the entire preceding conversation history (system prompt, user turns, and assistant replies) must be resent on every consecutive turn. For an N-turn session, cumulative input tokens scale quadratically, often causing input tokens to represent over 80% of your total API invoice by turn 5.',
+  },
+  {
+    question: 'How does Prompt Caching reduce LLM token spend?',
+    answer:
+      'Prompt caching allows API providers (such as Anthropic, OpenAI, and Google Gemini) to reuse cached key-value states for prompts that share an identical prefix (e.g. system instructions, tool definitions, or retrieved RAG context). Cache reads are discounted by 50% to 90% compared to standard input token pricing.',
+  },
+  {
+    question: 'What is a Context-Window Cliff Surcharge?',
+    answer:
+      'Certain API providers apply tiered pricing that doubles input and output rates when the prompt context exceeds a specific threshold (e.g., 128,000 tokens in Gemini 2.5 Pro). Crossing this threshold triggers a surcharge penalty across all tokens in that request.',
+  },
+  {
+    question: 'What is Smart Model Routing and how much money does it save?',
+    answer:
+      'Smart Model Routing (also known as hybrid cascading) directs 70% of simpler user queries (intents, formatting, single-turn lookups) to high-speed budget models (like GPT-4o mini, Gemini 2.5 Flash, or DeepSeek-V3), while reserving frontier reasoning models for complex requests. This architecture typically cuts overall API bills by 50% to 75% without degrading perceived output quality.',
+  },
+];
+
+const pageTitle = 'TokenFinOps — B2B AI API & Cloud Token FinOps Calculator (2026)';
+const pageDescription = 'Enterprise AI token cost engine. Calculate multi-turn conversational compounding, prompt caching ROI, context-cliff penalties, and smart routing across OpenAI, Anthropic, Google, and DeepSeek.';
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl="/"
+  faqs={faqs}
+>
+  <!-- Top Leaderboard Ad Container (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <AdSlot slotType="leaderboard" />
+  </div>
+
+  <!-- Hero Header -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 mb-4">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>Enterprise FinOps Engine • 2026 Frontier Rates</span>
+    </div>
+
+    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight">
+      AI Token FinOps & Cloud API Cost Calculator
+    </h1>
+
+    <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+      Accurately model multi-turn compounding, prompt cache discounts, context-cliff surcharges, and smart model routing across every frontier LLM.
+    </p>
+
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-mono text-slate-400">
+      <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">16 Foundation Models</span>
+      <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">Prompt Caching ROI</span>
+      <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">Context Cliff Alerts</span>
+      <span class="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800">100% Client-Side Engine</span>
+    </div>
+  </section>
+
+  <!-- Interactive Calculator Island -->
+  <FinOpsCalculator client:load />
+
+  <!-- In-Content Ad Container between Calculator and Directory (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdSlot slotType="in-content" />
+  </div>
+
+  <!-- B2B Workload Architecture Showcase Section -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-800/80">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-white tracking-tight">Production Workload Architecture Presets</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Select an architectural blueprint to inspect pre-configured token metrics and caching strategies.
+        </p>
+      </div>
+      <span class="text-xs font-mono text-emerald-400">8 Enterprise Presets</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {workloads.map((w) => (
+        <a
+          href={`/workloads/${w.slug}-cost-calculator`}
+          class="p-5 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/50 transition group flex flex-col justify-between"
+        >
+          <div>
+            <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-semibold block mb-2">
+              {w.category}
+            </span>
+            <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition">
+              {w.name}
+            </h3>
+            <p class="text-xs text-slate-400 mt-2 line-clamp-3 leading-relaxed">
+              {w.description}
+            </p>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs font-mono text-slate-400">
+            <span>{w.dailyRequests.toLocaleString()} req/day</span>
+            <span class="text-emerald-400 group-hover:translate-x-1 transition flex items-center gap-1">
+              Simulate &rarr;
+            </span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- Complete Searchable LLM Model Comparison Table -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-slate-800/80">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-white tracking-tight">Enterprise LLM Pricing Directory (2026)</h2>
+        <p class="text-sm text-slate-400 mt-1">
+          Complete unit economics for all supported models including prompt cache read discounts and context thresholds.
+        </p>
+      </div>
+      <div class="text-xs font-mono text-slate-400">
+        Showing all {models.length} production models
+      </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60 shadow-xl">
+      <table class="w-full text-left text-xs border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-mono">
+            <th class="p-3.5">Model Name & Provider</th>
+            <th class="p-3.5">Tier</th>
+            <th class="p-3.5">Standard Input / 1M</th>
+            <th class="p-3.5">Standard Output / 1M</th>
+            <th class="p-3.5">Cache Read / 1M</th>
+            <th class="p-3.5">Max Context</th>
+            <th class="p-3.5 text-right">FinOps Quick Links</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800/80 font-mono">
+          {models.map((m) => (
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="p-3.5">
+                <div class="font-sans font-bold text-white text-sm">{m.name}</div>
+                <div class="text-[11px] text-slate-400 font-normal">{m.provider}</div>
+              </td>
+              <td class="p-3.5">
+                <span class={`inline-block px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+                  m.tier === 'frontier' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' :
+                  m.tier === 'reasoning' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
+                  m.tier === 'budget' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                  'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                }`}>
+                  {m.tier}
+                </span>
+              </td>
+              <td class="p-3.5 text-slate-200 font-semibold">${m.inputRatePer1M.toFixed(2)}</td>
+              <td class="p-3.5 text-slate-200 font-semibold">${m.outputRatePer1M.toFixed(2)}</td>
+              <td class="p-3.5 text-emerald-400 font-semibold">${m.cachedInputRatePer1M.toFixed(3)}</td>
+              <td class="p-3.5 text-slate-300">
+                {(m.contextWindow / 1000).toFixed(0)}k toks
+                {m.cliffThreshold && (
+                  <span class="block text-[10px] text-amber-400">Cliff @ {(m.cliffThreshold / 1000).toFixed(0)}k</span>
+                )}
+              </td>
+              <td class="p-3.5 text-right font-sans">
+                <div class="flex items-center justify-end gap-2">
+                  <a
+                    href={`/models/${m.id}-pricing-calculator`}
+                    class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition"
+                  >
+                    Pricing
+                  </a>
+                  <a
+                    href={`/compare/${m.id}-vs-${m.recommendedCheapAlternativeId}-api-cost-calculator`}
+                    class="px-2.5 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-xs font-medium border border-emerald-500/30 transition"
+                  >
+                    vs Budget
+                  </a>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Technical SEO Educational Guide: The 4 Pillars of AI FinOps -->
+  <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10 border-t border-slate-800/80">
+    <div class="space-y-3">
+      <h2 class="text-2xl font-bold text-white tracking-tight">The 4 Pillars of Production AI Token FinOps</h2>
+      <p class="text-sm text-slate-300 leading-relaxed">
+        Engineering teams scaling large language models frequently experience bill shocks when moving from prototype to multi-tenant production. Here are the core mathematical levers that govern your generative AI margins.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-300 leading-relaxed">
+      <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <h3 class="font-bold text-white text-base text-emerald-400">1. Multi-Turn Compounding</h3>
+        <p>
+          In conversational agents, user history accumulates with every turn. Because stateless APIs require passing complete conversation history, session input tokens scale quadratically: $N \times S + \sum (i \times U + (i-1) \times O)$. Truncation or sliding-window summarization after 4 turns is essential to maintain healthy gross margins.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <h3 class="font-bold text-white text-base text-cyan-400">2. Prompt Caching Economics</h3>
+        <p>
+          Pinning static context (system instructions, enterprise document repositories, tool schemas) at the prompt prefix allows providers to reuse cached attention keys and values. With cache read discounts reaching 90%, high-traffic workloads achieve massive cost reductions.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <h3 class="font-bold text-white text-base text-amber-400">3. Context-Cliff Surcharges</h3>
+        <p>
+          Beware hidden tier cliffs! Certain frontier providers enforce double billing rates once prompt lengths cross 128,000 or 200,000 tokens. A single turn exceeding the cliff elevates the price of every token processed in that call, turning a high-margin query into a financial loss.
+        </p>
+      </div>
+
+      <div class="p-5 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+        <h3 class="font-bold text-white text-base text-indigo-400">4. Hybrid Smart Model Routing</h3>
+        <p>
+          Over 70% of production user queries do not require complex frontier reasoning. Implementing a lightweight semantic router to delegate simple classification, formatting, or single-shot QA to budget models saves up to 75% on annualized cloud invoices.
+        </p>
+      </div>
+    </div>
+
+    <!-- FAQs Section -->
+    <div class="space-y-4 pt-6 border-t border-slate-800">
+      <h2 class="text-xl font-bold text-white">Frequently Asked Questions</h2>
+      <div class="space-y-3">
+        {faqs.map((faq) => (
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-semibold text-white mb-1.5">{faq.question}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">{faq.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </article>
+
+  <!-- Bottom Ad Container (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <AdSlot slotType="footer" />
+  </div>
+</Layout>

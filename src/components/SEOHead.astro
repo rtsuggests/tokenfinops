@@ -1,0 +1,109 @@
+---
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface Props {
+  title: string;
+  description: string;
+  canonicalUrl?: string;
+  ogType?: 'website' | 'article';
+  faqs?: FaqItem[];
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalUrl = Astro.url.href,
+  ogType = 'website',
+  faqs = [],
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const siteUrl = 'https://tokenfinops.com';
+const fullCanonicalUrl = canonicalUrl.startsWith('http')
+  ? canonicalUrl
+  : `${siteUrl}${canonicalUrl}`;
+const ogImage = `${siteUrl}/og-image.png`;
+
+// SoftwareApplication Schema
+const softwareAppSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'TokenFinOps',
+  applicationCategory: 'BusinessApplication',
+  operatingSystem: 'All',
+  offers: {
+    '@type': 'Offer',
+    price: '0.00',
+    priceCurrency: 'USD',
+  },
+  description:
+    'Free B2B AI API & Cloud Token FinOps Calculator with Multi-Turn Compounding, Prompt Caching, Context Cliff Detection, and Smart Model Routing.',
+  url: siteUrl,
+  author: {
+    '@type': 'Organization',
+    name: 'TokenFinOps Engineering',
+    url: siteUrl,
+  },
+};
+
+// FAQPage Schema
+const faqSchema =
+  faqs.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      }
+    : null;
+---
+
+<!-- Global Metadata -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="canonical" href={fullCanonicalUrl} />
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+<meta name="theme-color" content="#0B0F19" />
+
+<!-- Open Graph / Facebook / LinkedIn -->
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={fullCanonicalUrl} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:site_name" content="TokenFinOps" />
+{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={fullCanonicalUrl} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:image" content={ogImage} />
+
+<!-- JSON-LD Structured Data: SoftwareApplication -->
+<script type="application/ld+json" set:html={JSON.stringify(softwareAppSchema)} />
+
+<!-- JSON-LD Structured Data: FAQPage -->
+{faqSchema && (
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+)}

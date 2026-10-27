@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AdSlot from '../components/AdSlot.astro';
+
+const pageTitle = 'Contact & Advertising Inquiries — TokenFinOps';
+const pageDescription = 'Get in touch with the TokenFinOps engineering team for API rate corrections, enterprise partnerships, and Google AdSense sponsorship inquiries.';
+---
+
+<Layout title={pageTitle} description={pageDescription} canonicalUrl="/contact">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="space-y-4 mb-8 border-b border-slate-800 pb-6">
+      <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+        Developer & Sponsor Inquiries
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Contact & Support</h1>
+      <p class="text-sm text-slate-300 max-w-2xl leading-relaxed">
+        Have feedback, suggestions for new LLM rate cards, or questions regarding advertising partnerships? Reach out to our team.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Contact Information Cards -->
+      <div class="space-y-6">
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <h2 class="text-base font-bold text-white">Enterprise Sponsorship & Ads</h2>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            TokenFinOps receives high-intent traffic from Staff Software Engineers, VP of Engineering leaders, and Cloud FinOps specialists. To discuss direct sponsor placements, API tooling promotions, or programmatic ad units:
+          </p>
+          <div class="pt-2 text-xs font-mono text-emerald-400">
+            sponsorships@tokenfinops.com
+          </div>
+        </div>
+
+        <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+          <h2 class="text-base font-bold text-white">Rate Card Corrections & Submissions</h2>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Did an LLM provider just cut prices or announce new prompt caching tiers? Submit a pull request or notify our engineering team so we can update `models.json` immediately.
+          </p>
+          <div class="pt-2 text-xs font-mono text-cyan-400">
+            data@tokenfinops.com
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Contact Form UI -->
+      <div class="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+        <h2 class="text-base font-bold text-white border-b border-slate-800 pb-3">Send a Message</h2>
+        <form
+          class="space-y-4 text-xs"
+          onsubmit="event.preventDefault(); alert('Thank you! Your message has been received.');"
+        >
+          <div>
+            <label class="block font-medium text-slate-300 mb-1" for="name">Your Name</label>
+            <input
+              type="text"
+              id="name"
+              required
+              placeholder="Alex Chen (Staff Engineer)"
+              class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+            />
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-300 mb-1" for="email">Work Email</label>
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="alex@company.com"
+              class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+            />
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-300 mb-1" for="topic">Inquiry Topic</label>
+            <select
+              id="topic"
+              class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+            >
+              <option value="advertising">AdSense / Direct Sponsorship</option>
+              <option value="rate-correction">Pricing Rate Card Correction</option>
+              <option value="model-request">Request New Model Integration</option>
+              <option value="other">General Engineering Feedback</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-medium text-slate-300 mb-1" for="message">Message</label>
+            <textarea
+              id="message"
+              rows="4"
+              required
+              placeholder="Details regarding your inquiry..."
+              class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-sans"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="w-full py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition shadow-sm shadow-emerald-500/20 text-xs"
+          >
+            Submit Inquiry
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-12">
+      <AdSlot slotType="footer" />
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,60 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AdSlot from '../components/AdSlot.astro';
+
+const pageTitle = 'Privacy Policy — TokenFinOps';
+const pageDescription = 'TokenFinOps privacy policy explaining our 100% client-side calculation architecture, cookie usage, and Google AdSense advertising compliance.';
+---
+
+<Layout title={pageTitle} description={pageDescription} canonicalUrl="/privacy-policy">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="space-y-4 mb-8 border-b border-slate-800 pb-6">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-white">Privacy Policy</h1>
+      <p class="text-xs font-mono text-slate-400">Last updated: October 2026</p>
+    </div>
+
+    <div class="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed space-y-6">
+      <section class="space-y-2">
+        <h2 class="text-lg font-bold text-white">1. Zero Backend Data Ingestion (Client-Side Guarantee)</h2>
+        <p>
+          TokenFinOps operates on a strict zero-backend architecture. All calculations, token sizing conversions, and financial projections execute deterministically inside your browser via client-side JavaScript. We do not transmit, record, store, or inspect your prompt contents, proprietary system instructions, customer names, or API credentials on any remote server.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-lg font-bold text-white">2. Google AdSense and Third-Party Advertising</h2>
+        <p>
+          We use third-party advertising companies, including Google AdSense, to serve advertisements when you visit our website. These companies may use cookies and web beacons to collect non-personally identifiable information about your visits to this and other websites in order to provide advertisements about goods and services of interest to you.
+        </p>
+        <p>
+          Google&apos;s use of the DoubleClick DART cookie enables it and its partners to serve ads based on your visit to our site and/or other sites on the Internet. You may opt out of the use of the DART cookie for interest-based advertising by visiting the <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" class="text-emerald-400 underline">Google Ads Settings</a> page.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-lg font-bold text-white">3. Cookies and Local Storage</h2>
+        <p>
+          TokenFinOps uses browser localStorage and URL search parameters strictly to persist your calculator preferences (such as selected models, input sizing units, and volume sliders) for your immediate session convenience. You can clear your browser storage or URL parameters at any time.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-lg font-bold text-white">4. GDPR and CCPA / CPRA Compliance</h2>
+        <p>
+          We respect the privacy rights of users under the European General Data Protection Regulation (GDPR) and the California Consumer Privacy Act (CCPA). Because we do not collect personal identifiers, account emails, or database entries, we do not sell or rent personal information to any third party.
+        </p>
+      </section>
+
+      <section class="space-y-2">
+        <h2 class="text-lg font-bold text-white">5. Contact Information</h2>
+        <p>
+          If you have questions regarding this Privacy Policy or our client-side processing practices, please contact us at <a href="/contact" class="text-emerald-400 underline">tokenfinops.com/contact</a> or via email at privacy@tokenfinops.com.
+        </p>
+      </section>
+    </div>
+
+    <div class="mt-12">
+      <AdSlot slotType="footer" />
+    </div>
+  </div>
+</Layout>

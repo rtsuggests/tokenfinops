@@ -1,0 +1,243 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FinOpsCalculator from '../../components/FinOpsCalculator';
+import AdSlot from '../../components/AdSlot.astro';
+import modelsData from '../../data/models.json';
+import type { LLMModel } from '../../types';
+import { calculateModelFinOps, formatCurrency, formatTokenCount } from '../../utils/finopsMath';
+
+export async function getStaticPaths() {
+  const models = modelsData as LLMModel[];
+  return models.map((model) => ({
+    params: {
+      id: model.id,
+    },
+    props: {
+      model,
+    },
+  }));
+}
+
+interface Props {
+  model: LLMModel;
+}
+
+const { model } = Astro.props;
+
+// Pre-rendered cost tiers for 1K, 10K, 100K, 1M daily requests
+const requestTiers = [1000, 10000, 100000, 1000000];
+const benchmarkInputs = {
+  systemPromptRaw: 3000,
+  userInputRaw: 400,
+  modelOutputRaw: 500,
+  unit: 'tokens' as const,
+  turnsPerSession: 2,
+  cacheHitPercent: 50,
+  isBatchMode: false,
+};
+
+const precomputedTiers = requestTiers.map((reqs) => {
+  const breakdown = calculateModelFinOps(model, {
+    modelId: model.id,
+    dailyRequests: reqs,
+    ...benchmarkInputs,
+  });
+  return {
+    dailyRequests: reqs,
+    monthlyRequests: reqs * 30,
+    monthlyCost: breakdown.monthlyTotalCost,
+    annualRunRate: breakdown.annualRunRate,
+    costPer1k: breakdown.costPer1kRequests,
+  };
+});
+
+// Data-driven FAQs for Technical SEO schema
+const cacheDiscountPercent =
+  model.inputRatePer1M > 0
+    ? ((model.inputRatePer1M - model.cachedInputRatePer1M) / model.inputRatePer1M) * 100
+    : 0;
+
+const faqs = [
+  {
+    question: `What is the official token pricing for ${model.name}?`,
+    answer: `${model.name} standard pricing is $${model.inputRatePer1M.toFixed(2)} per 1 million input tokens and $${model.outputRatePer1M.toFixed(2)} per 1 million output tokens. Prompt cache reads are billed at $${model.cachedInputRatePer1M.toFixed(3)} per 1M tokens (${cacheDiscountPercent.toFixed(0)}% discount).`,
+  },
+  {
+    question: `How much does ${model.name} cost per 1,000 requests?`,
+    answer: `For a typical enterprise workload (3,000 prompt tokens, 500 output tokens, 2 turns with 50% prompt cache hit), ${model.name} costs approximately $${precomputedTiers[0].costPer1k.toFixed(3)} per 1,000 requests.`,
+  },
+  {
+    question: `Does ${model.name} have a context-window cliff surcharge?`,
+    answer: model.cliffThreshold
+      ? `Yes. Prompts exceeding ${model.cliffThreshold.toLocaleString()} tokens incur an elevated long-context rate of $${model.longContextInputRatePer1M?.toFixed(2)}/1M input and $${model.longContextOutputRatePer1M?.toFixed(2)}/1M output.`
+      : `No. ${model.name} features flat, predictable unit economics up to its maximum context window of ${model.contextWindow.toLocaleString()} tokens without tiered rate spikes.`,
+  },
+  {
+    question: `What is the best budget alternative model for ${model.name}?`,
+    answer: `For high-volume non-reasoning tasks or classification, the recommended budget routing alternative is ${model.recommendedCheapAlternativeId}. Routing 70% of simpler intents to this tier typically reduces monthly invoices by over 50%.`,
+  },
+];
+
+const pageTitle = `${model.name} Pricing & Token Cost Calculator (2026 API Rates)`;
+const pageDescription = `Calculate enterprise API costs for ${model.name} by ${model.provider}. Live token economics: $${model.inputRatePer1M}/1M input, $${model.outputRatePer1M}/1M output, prompt caching discounts, and volume tiers.`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={`/models/${model.id}-pricing-calculator`}
+  faqs={faqs}
+>
+  <!-- Leaderboard Ad Container (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <AdSlot slotType="leaderboard" />
+  </div>
+
+  <!-- Header / Breadcrumbs -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+    <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3">
+      <a href="/" class="hover:text-emerald-400 transition">Home</a>
+      <span>/</span>
+      <a href="/models/claude-3-7-sonnet-pricing-calculator" class="hover:text-emerald-400 transition">Models</a>
+      <span>/</span>
+      <span class="text-slate-200">{model.name}</span>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-2">
+          {model.provider} • {model.tier} Tier
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+          {model.name} Pricing & Cost Calculator
+        </h1>
+        <p class="text-sm sm:text-base text-slate-300 max-w-3xl mt-1 leading-relaxed">
+          Simulate enterprise token spend for {model.name}. Calculate prompt caching ROI, conversation compounding across multi-turn sessions, and batch execution savings.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-right flex-shrink-0">
+        <span class="text-[10px] uppercase font-mono text-slate-400 block">Baseline Rate</span>
+        <span class="text-xl font-mono font-bold text-emerald-400">
+          ${model.inputRatePer1M.toFixed(2)} <span class="text-xs text-slate-400">in</span> / ${model.outputRatePer1M.toFixed(2)} <span class="text-xs text-slate-400">out</span>
+        </span>
+        <span class="text-[10px] text-slate-400 block mt-0.5">Per 1,000,000 Tokens</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Calculator Island Pre-Selected with this Model -->
+  <FinOpsCalculator
+    client:load
+    initialModelA={model.id}
+    initialModelB={model.recommendedCheapAlternativeId}
+  />
+
+  <!-- In-Content Ad Container (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdSlot slotType="in-content" />
+  </div>
+
+  <!-- Pre-computed Volume Cost Matrix Table -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white">Volume Tier Cost Projection Table</h2>
+          <p class="text-xs text-slate-400">
+            Standard enterprise benchmark: 3k prompt tokens, 500 output tokens, 2 turns, 50% prompt cache hit.
+          </p>
+        </div>
+        <span class="text-[11px] font-mono text-emerald-400">Updated Daily</span>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60 shadow-lg">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-mono">
+              <th class="p-3">Daily Volume</th>
+              <th class="p-3">Monthly Requests</th>
+              <th class="p-3">Monthly Cost</th>
+              <th class="p-3">Annual Run-Rate</th>
+              <th class="p-3 text-right">Cost per 1k Reqs</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/80 font-mono">
+            {precomputedTiers.map((tier) => (
+              <tr>
+                <td class="p-3 font-semibold text-white">
+                  {tier.dailyRequests.toLocaleString()} req/day
+                </td>
+                <td class="p-3 text-slate-300">
+                  {tier.monthlyRequests.toLocaleString()} / mo
+                </td>
+                <td class="p-3 text-emerald-400 font-bold">
+                  {formatCurrency(tier.monthlyCost)}
+                </td>
+                <td class="p-3 text-slate-200">
+                  {formatCurrency(tier.annualRunRate)}
+                </td>
+                <td class="p-3 text-right text-cyan-400 font-semibold">
+                  ${tier.costPer1k.toFixed(3)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Technical Architecture Specifications -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <span class="text-[10px] uppercase font-mono text-slate-400 block mb-1">Max Context Window</span>
+        <span class="text-lg font-bold text-white font-mono">{formatTokenCount(model.contextWindow)} tokens</span>
+        <p class="text-xs text-slate-400 mt-1">
+          {model.cliffThreshold
+            ? `Cliff threshold triggers at ${formatTokenCount(model.cliffThreshold)} tokens with tiered surcharge.`
+            : 'Flat unit economics across the entire context window with zero cliff surcharge.'}
+        </p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <span class="text-[10px] uppercase font-mono text-slate-400 block mb-1">Prompt Cache Read Discount</span>
+        <span class="text-lg font-bold text-emerald-400 font-mono">{cacheDiscountPercent.toFixed(0)}% Off</span>
+        <p class="text-xs text-slate-400 mt-1">
+          Cached reads cost ${model.cachedInputRatePer1M.toFixed(3)}/1M vs ${model.inputRatePer1M.toFixed(2)}/1M for standard input.
+        </p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+        <span class="text-[10px] uppercase font-mono text-slate-400 block mb-1">Batch API SLA</span>
+        <span class="text-lg font-bold text-indigo-400 font-mono">
+          {model.batchDiscountMultiplier < 1.0
+            ? `${((1 - model.batchDiscountMultiplier) * 100).toFixed(0)}% Discount`
+            : 'Standard'}
+        </span>
+        <p class="text-xs text-slate-400 mt-1">
+          {model.batchDiscountMultiplier < 1.0
+            ? '50% off for 24-hour asynchronous batch queuing workloads.'
+            : 'Batch API discounts are currently not natively supported for this provider endpoint.'}
+        </p>
+      </div>
+    </div>
+
+    <!-- Model FAQs -->
+    <div class="space-y-4 pt-6 border-t border-slate-800">
+      <h2 class="text-xl font-bold text-white">Frequently Asked Questions</h2>
+      <div class="space-y-3">
+        {faqs.map((faq) => (
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-semibold text-white mb-1.5">{faq.question}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">{faq.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Ad Container (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <AdSlot slotType="footer" />
+  </div>
+</Layout>

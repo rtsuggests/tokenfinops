@@ -1,0 +1,158 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FinOpsCalculator from '../../components/FinOpsCalculator';
+import AdSlot from '../../components/AdSlot.astro';
+import workloadsData from '../../data/workloads.json';
+import modelsData from '../../data/models.json';
+import type { WorkloadPreset, LLMModel } from '../../types';
+
+export async function getStaticPaths() {
+  const workloads = workloadsData as WorkloadPreset[];
+  return workloads.map((workload) => ({
+    params: {
+      slug: workload.slug,
+    },
+    props: {
+      workload,
+    },
+  }));
+}
+
+interface Props {
+  workload: WorkloadPreset;
+}
+
+const { workload } = Astro.props;
+const models = modelsData as LLMModel[];
+const modelA = models.find((m) => m.id === workload.defaultModelA) || models[0];
+const modelB = models.find((m) => m.id === workload.defaultModelB) || models[1];
+
+// Workload-specific data-driven FAQs
+const faqs = [
+  {
+    question: `How does prompt caching benefit a ${workload.name}?`,
+    answer: `In a ${workload.name}, system instructions, schema definitions, and RAG context chunks frequently repeat. Setting a cache hit rate of ${workload.cacheHitPercent}% reduces effective input token spend by up to ${(workload.cacheHitPercent * 0.9).toFixed(0)}%, providing dramatic margin improvements.`,
+  },
+  {
+    question: `Why is ${modelA.name} vs ${modelB.name} recommended for this architecture?`,
+    answer: `${modelA.name} and ${modelB.name} represent the production sweet spot for ${workload.category}. ${modelA.name} provides premier accuracy, while ${modelB.name} offers high throughput unit economics for routine turns.`,
+  },
+  {
+    question: `Should ${workload.name} use the 24-hour asynchronous Batch API?`,
+    answer: workload.isBatchMode
+      ? `Yes. Because ${workload.name} workloads often tolerate asynchronous execution SLAs (e.g. overnight batch processing), utilizing Batch APIs locks in an instant 50% invoice discount.`
+      : `No. ${workload.name} typically requires sub-second conversational or real-time latency SLAs, which necessitates standard on-demand inference endpoints.`,
+  },
+  {
+    question: `How do conversation turns compound token costs in this workflow?`,
+    answer: `With ${workload.turnsPerSession} turn(s) configured per session, context accumulates as previous query/response history is re-sent. Careful management of context window and truncation keeps token inflation linear rather than quadratic.`,
+  },
+];
+
+const pageTitle = `${workload.name} Token Cost Calculator & FinOps Guide (2026)`;
+const pageDescription = `Model API costs for ${workload.name} (${workload.category}). Pre-configured with ${workload.dailyRequests.toLocaleString()} req/day, ${workload.systemPromptTokens.toLocaleString()} context tokens, and caching ROI.`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={`/workloads/${workload.slug}-cost-calculator`}
+  faqs={faqs}
+>
+  <!-- Leaderboard Ad Container (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <AdSlot slotType="leaderboard" />
+  </div>
+
+  <!-- Header / Breadcrumbs -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+    <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3">
+      <a href="/" class="hover:text-emerald-400 transition">Home</a>
+      <span>/</span>
+      <a href="/workloads/rag-pipeline-cost-calculator" class="hover:text-emerald-400 transition">Workloads</a>
+      <span>/</span>
+      <span class="text-slate-200">{workload.name}</span>
+    </div>
+
+    <div class="space-y-2">
+      <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+        {workload.category} Architecture
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+        {workload.name}: Token FinOps Calculator
+      </h1>
+      <p class="text-sm sm:text-base text-slate-300 max-w-4xl leading-relaxed">
+        {workload.description} This production preset pre-fills all system prompt, user turn, and cache variables according to standard enterprise benchmarks.
+      </p>
+    </div>
+  </section>
+
+  <!-- Interactive Calculator Island Pre-Configured for this Workload -->
+  <FinOpsCalculator
+    client:load
+    initialWorkloadSlug={workload.slug}
+    initialModelA={workload.defaultModelA}
+    initialModelB={workload.defaultModelB}
+    initialDailyRequests={workload.dailyRequests}
+    initialSystemTokens={workload.systemPromptTokens}
+    initialUserTokens={workload.userInputTokens}
+    initialOutputTokens={workload.modelOutputTokens}
+    initialTurns={workload.turnsPerSession}
+    initialCacheHit={workload.cacheHitPercent}
+    initialBatch={workload.isBatchMode}
+  />
+
+  <!-- In-Content Ad Container (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdSlot slotType="in-content" />
+  </div>
+
+  <!-- Technical Architectural Guidance -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <div class="space-y-4">
+      <h2 class="text-xl font-bold text-white">Staff FinOps Architecture Blueprint</h2>
+      <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 text-sm text-slate-300 leading-relaxed">
+        <p>
+          <strong class="text-white">Production Best Practice:</strong> {workload.architecturalAdvice}
+        </p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-800/80 font-mono text-xs">
+          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Benchmark Volume</span>
+            <span class="font-bold text-emerald-400 text-sm">{(workload.dailyRequests).toLocaleString()} req/day</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">System Context</span>
+            <span class="font-bold text-white text-sm">{workload.systemPromptTokens.toLocaleString()} tokens</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Expected Cache Hit</span>
+            <span class="font-bold text-cyan-400 text-sm">{workload.cacheHitPercent}%</span>
+          </div>
+          <div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800/80">
+            <span class="text-slate-400 block text-[10px]">Batch Mode</span>
+            <span class="font-bold text-indigo-400 text-sm">{workload.isBatchMode ? 'Enabled (-50%)' : 'On-Demand'}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQs -->
+    <div class="space-y-4 pt-6 border-t border-slate-800">
+      <h2 class="text-xl font-bold text-white">Workload Architecture FAQs</h2>
+      <div class="space-y-3">
+        {faqs.map((faq) => (
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-semibold text-white mb-1.5">{faq.question}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">{faq.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Ad Container (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <AdSlot slotType="footer" />
+  </div>
+</Layout>

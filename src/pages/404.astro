@@ -1,0 +1,32 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const pageTitle = '404 - Page Not Found — TokenFinOps';
+const pageDescription = 'The requested AI FinOps calculation page could not be found.';
+---
+
+<Layout title={pageTitle} description={pageDescription} canonicalUrl="/404">
+  <div class="max-w-2xl mx-auto px-4 py-24 text-center space-y-6">
+    <div class="w-16 h-16 mx-auto rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 font-mono text-2xl font-bold">
+      404
+    </div>
+    <h1 class="text-3xl font-extrabold text-white">FinOps Route Not Found</h1>
+    <p class="text-sm text-slate-300">
+      The model comparison or workload route you requested does not exist or has been relocated.
+    </p>
+    <div class="pt-4 flex items-center justify-center gap-3">
+      <a
+        href="/"
+        class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition"
+      >
+        Return to Calculator
+      </a>
+      <a
+        href="/compare/claude-3-5-sonnet-vs-gpt-4o-api-cost-calculator"
+        class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition"
+      >
+        Popular Comparison
+      </a>
+    </div>
+  </div>
+</Layout>

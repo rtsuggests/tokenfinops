@@ -1,0 +1,247 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FinOpsCalculator from '../../components/FinOpsCalculator';
+import AdSlot from '../../components/AdSlot.astro';
+import modelsData from '../../data/models.json';
+import type { LLMModel } from '../../types';
+import { formatCurrency } from '../../utils/finopsMath';
+
+export async function getStaticPaths() {
+  const models = modelsData as LLMModel[];
+  const paths = [];
+
+  for (const modelA of models) {
+    for (const modelB of models) {
+      if (modelA.id === modelB.id) continue;
+      paths.push({
+        params: {
+          pair: `${modelA.id}-vs-${modelB.id}-api-cost-calculator`,
+        },
+        props: {
+          modelA,
+          modelB,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+interface Props {
+  modelA: LLMModel;
+  modelB: LLMModel;
+}
+
+const { modelA, modelB } = Astro.props;
+
+// Math analysis for Technical SEO prose
+const inputDelta = modelA.inputRatePer1M - modelB.inputRatePer1M;
+const outputDelta = modelA.outputRatePer1M - modelB.outputRatePer1M;
+
+const inputSavingsPercent =
+  modelA.inputRatePer1M > 0
+    ? ((modelA.inputRatePer1M - modelB.inputRatePer1M) / modelA.inputRatePer1M) * 100
+    : 0;
+
+const cacheDiscountA =
+  modelA.inputRatePer1M > 0
+    ? ((modelA.inputRatePer1M - modelA.cachedInputRatePer1M) / modelA.inputRatePer1M) * 100
+    : 0;
+
+const cacheDiscountB =
+  modelB.inputRatePer1M > 0
+    ? ((modelB.inputRatePer1M - modelB.cachedInputRatePer1M) / modelB.inputRatePer1M) * 100
+    : 0;
+
+// Break-even token ratio calculation
+let breakEvenText = '';
+const numerator = modelB.outputRatePer1M - modelA.outputRatePer1M;
+const denominator = modelA.inputRatePer1M - modelB.inputRatePer1M;
+if (Math.sign(numerator) === Math.sign(denominator) && denominator !== 0) {
+  const ratio = (numerator / denominator).toFixed(2);
+  breakEvenText = `The mathematical break-even threshold occurs at an input-to-output token ratio of ${ratio}:1. For workloads with higher input concentrations than this ratio, the model with lower input rates delivers superior margins.`;
+} else if (modelA.inputRatePer1M <= modelB.inputRatePer1M && modelA.outputRatePer1M <= modelB.outputRatePer1M) {
+  breakEvenText = `${modelA.name} is strictly more cost-effective across both input and output dimensions without trade-offs.`;
+} else {
+  breakEvenText = `${modelB.name} is strictly more cost-effective across both input and output dimensions without trade-offs.`;
+}
+
+// Data-driven programmatic FAQs for SEO schema
+const faqs = [
+  {
+    question: `Is ${modelA.name} cheaper than ${modelB.name} for enterprise API workloads?`,
+    answer: `${modelA.name} standard pricing is $${modelA.inputRatePer1M.toFixed(2)}/1M input and $${modelA.outputRatePer1M.toFixed(2)}/1M output, compared to $${modelB.inputRatePer1M.toFixed(2)}/1M input and $${modelB.outputRatePer1M.toFixed(2)}/1M output for ${modelB.name}. Depending on prompt caching utilization and input/output token ratios, ${inputDelta < 0 ? modelA.name : modelB.name} offers lower raw unit economics.`,
+  },
+  {
+    question: `How does prompt caching affect the pricing between ${modelA.name} and ${modelB.name}?`,
+    answer: `${modelA.name} provides a ${cacheDiscountA.toFixed(0)}% prompt cache read discount ($${modelA.cachedInputRatePer1M.toFixed(2)}/1M cached tokens), while ${modelB.name} yields a ${cacheDiscountB.toFixed(0)}% cache read discount ($${modelB.cachedInputRatePer1M.toFixed(2)}/1M cached tokens). For workloads with repetitive system instructions or RAG chunk caching, effective input spend drops significantly.`,
+  },
+  {
+    question: `What are the context window limits and surcharge cliffs for ${modelA.name} vs ${modelB.name}?`,
+    answer: `${modelA.name} supports a maximum context window of ${modelA.contextWindow.toLocaleString()} tokens${modelA.cliffThreshold ? ` with a long-context cliff surcharge triggering at ${modelA.cliffThreshold.toLocaleString()} tokens` : ' with flat predictable rates'}. In contrast, ${modelB.name} supports ${modelB.contextWindow.toLocaleString()} tokens${modelB.cliffThreshold ? ` with a cliff surcharge triggering at ${modelB.cliffThreshold.toLocaleString()} tokens` : ' with flat pricing'}.`,
+  },
+  {
+    question: `Can I implement smart routing between ${modelA.name} and a cheaper fallback?`,
+    answer: `Yes. In production FinOps architectures, routing 70% of simpler user queries or deterministic classification tasks to a budget tier alternative like ${modelA.recommendedCheapAlternativeId} or ${modelB.recommendedCheapAlternativeId} typically cuts overall cloud AI API invoices by 40% to 75% while preserving quality.`,
+  },
+];
+
+const pageTitle = `${modelA.name} vs ${modelB.name} API Cost Calculator (2026 Pricing & FinOps)`;
+const pageDescription = `Detailed B2B cost comparison between ${modelA.name} ($${modelA.inputRatePer1M}/1M in) and ${modelB.name} ($${modelB.inputRatePer1M}/1M in). Model prompt caching, multi-turn compounding, context cliffs, and batch discounts.`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalUrl={`/compare/${modelA.id}-vs-${modelB.id}-api-cost-calculator`}
+  faqs={faqs}
+>
+  <!-- Top Leaderboard Ad Container (CLS = 0) -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+    <AdSlot slotType="leaderboard" />
+  </div>
+
+  <!-- Page Header Breadcrumbs & Hero -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+    <div class="flex items-center gap-2 text-xs font-mono text-slate-400 mb-3">
+      <a href="/" class="hover:text-emerald-400 transition">Home</a>
+      <span>/</span>
+      <a href="/compare/claude-3-5-sonnet-vs-gpt-4o-api-cost-calculator" class="hover:text-emerald-400 transition">Compare</a>
+      <span>/</span>
+      <span class="text-slate-200">{modelA.name} vs {modelB.name}</span>
+    </div>
+
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+        <span class="text-emerald-400">{modelA.name}</span> vs <span class="text-cyan-400">{modelB.name}</span>: Token Cost & FinOps Analysis
+      </h1>
+      <p class="text-sm sm:text-base text-slate-300 max-w-4xl leading-relaxed">
+        Side-by-side programmatic unit economics benchmark for {modelA.provider} and {modelB.provider}. Adjust requests, multi-turn conversation depth, and cache hit rates to project exact monthly cloud run-rates.
+      </p>
+    </div>
+  </section>
+
+  <!-- Interactive Calculator Island Pre-Populated -->
+  <FinOpsCalculator
+    client:load
+    initialModelA={modelA.id}
+    initialModelB={modelB.id}
+  />
+
+  <!-- In-Content AdSlot between Calculator and SEO Table (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <AdSlot slotType="in-content" />
+  </div>
+
+  <!-- Deep-Dive Programmatic Technical SEO Analysis Section -->
+  <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+    <!-- Rate Comparison Table -->
+    <div class="space-y-4">
+      <h2 class="text-xl font-bold text-white flex items-center gap-2">
+        <span>Unit Economic Rate Specifications</span>
+      </h2>
+      <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/60 shadow-lg">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950/80 text-slate-400 font-mono">
+              <th class="p-3">Pricing Metric</th>
+              <th class="p-3 text-emerald-400">{modelA.name} ({modelA.provider})</th>
+              <th class="p-3 text-cyan-400">{modelB.name} ({modelB.provider})</th>
+              <th class="p-3 text-right">Rate Variance</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800/80 font-mono">
+            <tr>
+              <td class="p-3 font-sans text-slate-300">Standard Input / 1M Tokens</td>
+              <td class="p-3 font-semibold text-white">${modelA.inputRatePer1M.toFixed(2)}</td>
+              <td class="p-3 font-semibold text-white">${modelB.inputRatePer1M.toFixed(2)}</td>
+              <td class="p-3 text-right font-semibold text-slate-300">
+                {inputDelta < 0 ? `${modelA.name} is cheaper` : `${modelB.name} is cheaper`}
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3 font-sans text-slate-300">Standard Output / 1M Tokens</td>
+              <td class="p-3 font-semibold text-white">${modelA.outputRatePer1M.toFixed(2)}</td>
+              <td class="p-3 font-semibold text-white">${modelB.outputRatePer1M.toFixed(2)}</td>
+              <td class="p-3 text-right font-semibold text-slate-300">
+                {outputDelta < 0 ? `${modelA.name} is cheaper` : `${modelB.name} is cheaper`}
+              </td>
+            </tr>
+            <tr>
+              <td class="p-3 font-sans text-slate-300">Prompt Cache Read / 1M Tokens</td>
+              <td class="p-3 text-emerald-400 font-semibold">${modelA.cachedInputRatePer1M.toFixed(3)} ({cacheDiscountA.toFixed(0)}% off)</td>
+              <td class="p-3 text-cyan-400 font-semibold">${modelB.cachedInputRatePer1M.toFixed(3)} ({cacheDiscountB.toFixed(0)}% off)</td>
+              <td class="p-3 text-right text-slate-300">Cache Discount</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-sans text-slate-300">Batch API SLA Discount</td>
+              <td class="p-3 text-white">{((1 - modelA.batchDiscountMultiplier) * 100).toFixed(0)}% Off</td>
+              <td class="p-3 text-white">{((1 - modelB.batchDiscountMultiplier) * 100).toFixed(0)}% Off</td>
+              <td class="p-3 text-right text-slate-300">24-hour Async</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-sans text-slate-300">Context Window & Surcharge Cliff</td>
+              <td class="p-3 text-slate-300">
+                {modelA.contextWindow.toLocaleString()} tokens
+                {modelA.cliffThreshold ? ` (Cliff at ${modelA.cliffThreshold.toLocaleString()})` : ' (Flat)'}
+              </td>
+              <td class="p-3 text-slate-300">
+                {modelB.contextWindow.toLocaleString()} tokens
+                {modelB.cliffThreshold ? ` (Cliff at ${modelB.cliffThreshold.toLocaleString()})` : ' (Flat)'}
+              </td>
+              <td class="p-3 text-right text-slate-300">Max Context</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Architectural Deep-Dive Insights -->
+    <div class="space-y-4">
+      <h2 class="text-xl font-bold text-white">Staff Architectural Guidance: FinOps Optimization</h2>
+      <div class="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed space-y-4">
+        <p>
+          When choosing between <strong>{modelA.name}</strong> and <strong>{modelB.name}</strong> for enterprise workloads, headline token rates per million often mask the real production cost driver. {breakEvenText}
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6 not-prose">
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-2">Prompt Caching Strategy</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              {modelA.name} provides a {cacheDiscountA.toFixed(0)}% read discount on cached prefixes. If you are building Retrieval-Augmented Generation (RAG) systems or enterprise agent swarms with fixed tool definitions, ensure your system prompts exceed the provider minimum threshold (e.g., 1,024 or 2,048 tokens) to capitalize on cache hits.
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-2">Multi-Turn History Compounding</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              In multi-turn chatbots with 6+ turns, conversation history is resent on every subsequent turn. By turn 6, input tokens dominate up to 85% of your total billing invoice. Implement automatic summarization or windowed history truncation to prevent runaway quadratic token inflation.
+            </p>
+          </div>
+        </div>
+
+        <p>
+          For batch-eligible workloads such as bulk PDF invoice extraction or overnight database re-indexing, both providers support asynchronous Batch APIs delivering up to 50% invoice credits. Pair this with model fallbacks to maximize operational resilience.
+        </p>
+      </div>
+    </div>
+
+    <!-- Frequently Asked Questions (FAQ Section + Schema) -->
+    <div class="space-y-4 pt-6 border-t border-slate-800">
+      <h2 class="text-xl font-bold text-white">Frequently Asked Questions</h2>
+      <div class="space-y-3">
+        {faqs.map((faq) => (
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+            <h3 class="text-sm font-semibold text-white mb-1.5">{faq.question}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">{faq.answer}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </article>
+
+  <!-- Bottom Ad Container (CLS = 0) -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <AdSlot slotType="footer" />
+  </div>
+</Layout>
