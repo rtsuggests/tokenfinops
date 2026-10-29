@@ -14,11 +14,11 @@ const child = spawn(cmd, ['astro', 'build', ...process.argv.slice(2)], {
 child.on('exit', (code) => {
   if (code === 0) {
     try {
-      const distIndex = resolve('dist', 'sitemap-index.xml');
+      const distSitemap0 = resolve('dist', 'sitemap-0.xml');
       const distSitemap = resolve('dist', 'sitemap.xml');
-      if (existsSync(distIndex)) {
-        copyFileSync(distIndex, distSitemap);
-        console.log('✓ Generated dist/sitemap.xml from sitemap-index.xml (GSC ready)');
+      if (existsSync(distSitemap0)) {
+        copyFileSync(distSitemap0, distSitemap);
+        console.log('✓ Generated dist/sitemap.xml directly with all URLs for instant GSC discovery');
       }
     } catch (err) {
       console.error('Error generating sitemap.xml copy:', err);
