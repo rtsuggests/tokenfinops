@@ -5,6 +5,11 @@
 [build.environment]
   ASTRO_TELEMETRY_DISABLED = "1"
 
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap-index.xml"
+  status = 200
+
 [[headers]]
   for = "/_astro/*"
   [headers.values]
@@ -24,6 +29,7 @@
     Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
 
 [[headers]]
-  for = "/sitemap-index.xml"
+  for = "/sitemap*.xml"
   [headers.values]
     Cache-Control = "public, max-age=86400"
+    Content-Type = "application/xml; charset=utf-8"
