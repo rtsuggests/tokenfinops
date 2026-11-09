@@ -12,7 +12,13 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: true,
     }),
-    sitemap(),
+    sitemap({
+      serialize(item) {
+        item.lastmod = new Date();
+        item.changefreq = 'weekly';
+        return item;
+      },
+    }),
   ],
   compressHTML: true,
 });
